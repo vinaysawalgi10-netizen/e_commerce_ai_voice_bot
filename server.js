@@ -1,7 +1,7 @@
+import cors from "cors";
+import dotenv from "dotenv";
 import express from "express";
 import mongoose from "mongoose";
-import dotenv from "dotenv";
-import cors from "cors";
 import webhookRoute from "./routes/webhook.js";
 
 dotenv.config();
@@ -18,7 +18,11 @@ mongoose.connect(process.env.MONGO_URI)
 app.use("/webhook", webhookRoute);
 
 app.get("/", (req, res) => {
-  res.send("🚀 Backend is running and ready to handle requests!");
+  res.send("MARU Running");
+});
+
+app.get("/health", (req, res) => {
+  res.send("OK");
 });
 
 const PORT = process.env.PORT || 3000;
