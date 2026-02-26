@@ -1,0 +1,12 @@
+{
+  "name": "ecommerce-voice-ai",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "server.js",
+  "dependencies": {
+    "express": "^4.x",
+    "mongoose": "^8.x",
+    "dotenv": "^17.x",
+    "cors": "^2.x"
+  }
+}
