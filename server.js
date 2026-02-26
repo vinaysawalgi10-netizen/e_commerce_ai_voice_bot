@@ -1,21 +1,34 @@
+require("dotenv").config();
 import cors from "cors";
-import dotenv from "dotenv";
 import express from "express";
 import mongoose from "mongoose";
 import webhookRoute from "./routes/webhook.js";
 
-dotenv.config();
-
 const app = express();
+
+// Safe check for environment variables (won't crash app)
+if (!process.env.MONGO_URI) {
+  console.log("⚠️ Missing MONGO_URI");
+}
+if (!process.env.RETELL_SECRET) {
+  console.log("⚠️ Missing RETELL_SECRET");
+}
 
 app.use(cors());
 app.use(express.json());
 
-mongoose.connect(process.env.MONGO_URI)
+// Connect to MongoDB with error handling
+mongoose.connect(process.env.MONGO_URI || "mongodb://localhost:27017/ecommerce")
   .then(() => console.log("✅ Mongo Connected"))
-  .catch(err => console.error(err));
+  .catch(err => console.error("❌ Mongo Error:", err));
 
+// Routes
 app.use("/webhook", webhookRoute);
+
+// Simple webhook test route (for 502 fix)
+app.post("/webhook-test", (req, res) => {
+  res.send("Webhook Working");
+});
 
 app.get("/", (req, res) => {
   res.send("MARU Running");
