@@ -1,8 +1,10 @@
-require("dotenv").config();
 import cors from "cors";
+import dotenv from "dotenv";
 import express from "express";
 import mongoose from "mongoose";
 import webhookRoute from "./routes/webhook.js";
+
+dotenv.config();
 
 const app = express();
 
