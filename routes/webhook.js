@@ -1,6 +1,6 @@
 import express from "express";
-import Order from "../models/Order.js";
 import Inventory from "../models/Inventory.js";
+import Order from "../models/Order.js";
 import Ticket from "../models/Ticket.js";
 
 const router = express.Router();
@@ -14,20 +14,32 @@ router.post("/", async (req, res) => {
       return res.status(403).send("Unauthorized");
     }
 
-    console.log("Full Incoming Body:", JSON.stringify(req.body, null, 2));
+    let body = req.body;
+
+    // If body is a Buffer (raw body), convert it to JSON
+    if (Buffer.isBuffer(body)) {
+      try {
+        body = JSON.parse(body.toString("utf8"));
+      } catch (err) {
+        console.error("JSON Parse Error:", err);
+        return res.status(400).json({ response: "Invalid JSON" });
+      }
+    }
+
+    console.log("Full Incoming Body:", JSON.stringify(body, null, 2));
 
     // Detect tool name
-    let tool = req.body.tool || req.body.name || (req.body.call && req.body.call.tool_name);
+    let tool = body.tool || body.name || (body.call && body.call.tool_name);
 
     // Extract data/parameters robustly
     let data = {};
 
-    if (req.body.data) data = req.body.data;
-    else if (req.body.args) data = req.body.args;
-    else if (req.body.parameters) data = req.body.parameters;
-    else if (req.body.arguments) data = req.body.arguments;
-    else if (req.body.call && req.body.call.arguments) data = req.body.call.arguments;
-    else data = req.body;
+    if (body.data) data = body.data;
+    else if (body.args) data = body.args;
+    else if (body.parameters) data = body.parameters;
+    else if (body.arguments) data = body.arguments;
+    else if (body.call && body.call.arguments) data = body.call.arguments;
+    else data = body;
 
     console.log(`Detected tool: ${tool}`);
     console.log("Extracted data:", data);
