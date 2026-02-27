@@ -16,32 +16,44 @@ if (!process.env.RETELL_SECRET) {
   console.log("⚠️ Missing RETELL_SECRET");
 }
 
+// Enable CORS
 app.use(cors());
-app.use(express.json());
 
-// Connect to MongoDB with error handling
-mongoose.connect(process.env.MONGO_URI || "mongodb://localhost:27017/ecommerce")
-  .then(() => console.log("✅ Mongo Connected"))
-  .catch(err => console.error("❌ Mongo Error:", err));
-
-// Routes
-app.use("/webhook", webhookRoute);
-
-// Simple webhook test route (for 502 fix)
-app.post("/webhook-test", (req, res) => {
-  res.send("Webhook Working");
+// Health check route BEFORE any body parsing
+app.get("/health", (req, res) => {
+  res.send("OK");
 });
 
 app.get("/", (req, res) => {
   res.send("MARU Running");
 });
 
-app.get("/health", (req, res) => {
-  res.send("OK");
+// Webhook needs raw body for signature verification
+app.use("/webhook", express.raw({ type: "application/json" }), webhookRoute);
+
+// Simple webhook test route
+app.post("/webhook-test", (req, res) => {
+  res.send("Webhook Working");
 });
+
+// Connect to MongoDB with error handling
+mongoose.connect(process.env.MONGO_URI || "mongodb://localhost:27017/ecommerce")
+  .then(() => console.log("✅ Mongo Connected"))
+  .catch(err => console.error("❌ Mongo Error:", err));
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, "0.0.0.0", () => {
+// Start server
+const server = app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server running on port ${PORT}`);
+});
+
+// Handle uncaught exceptions
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught Exception:", err);
+  server.close(() => process.exit(1));
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
 });
